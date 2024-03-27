@@ -51,6 +51,10 @@ class OnlineTrainer(Trainer):
 		"""Creates a TensorDict for a new episode."""
 		if isinstance(obs, dict):
 			obs = TensorDict(obs, batch_size=(), device='cpu')
+   
+			# @sanghyun: make tensors have the leading dimension of 1
+			for key in obs.keys():
+				obs[key] = obs[key].unsqueeze(0).cpu()
 		else:
 			obs = obs.unsqueeze(0).cpu()
 		if action is None:
@@ -108,8 +112,13 @@ class OnlineTrainer(Trainer):
 					print('Pretraining agent on seed data...')
 				else:
 					num_updates = 1
-				for _ in range(num_updates):
-					_train_metrics = self.agent.update(self.buffer)
+				try:
+					for _ in range(num_updates):
+						_train_metrics = self.agent.update(self.buffer)
+				except:
+					print("Emptying Buffer")
+					#@sanghyun: quick fix for bug at https://github.com/pytorch/rl/issues/1969
+					self.buffer._buffer.empty()
 				train_metrics.update(_train_metrics)
 
 			self._step += 1

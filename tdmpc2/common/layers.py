@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functorch import combine_state_for_ensemble
 
+from t2a.design_opt.models.gnn import GNNSimple
+
 
 class Ensemble(nn.Module):
 	"""
@@ -36,8 +38,8 @@ class ShiftAug(nn.Module):
 	def forward(self, x):
 		x = x.float()
 		n, _, h, w = x.size()
-		assert h == w
 		padding = tuple([self.pad] * 4)
+		assert h == w
 		x = F.pad(x, padding, 'replicate')
 		eps = 1.0 / (h + 2 * self.pad)
 		arange = torch.linspace(-1.0 + eps, 1.0 - eps, h + 2 * self.pad, device=x.device, dtype=x.dtype)[:h]
@@ -129,7 +131,9 @@ def conv(in_shape, num_channels, act=None):
 	"""
 	assert in_shape[-1] == 64 # assumes rgb observations to be 64x64
 	layers = [
-		ShiftAug(), PixelPreprocess(),
+		# ShiftAug(), PixelPreprocess(),
+		# @sanghyun: remove ShiftAug for now...
+		PixelPreprocess(),
 		nn.Conv2d(in_shape[0], num_channels, 7, stride=2), nn.ReLU(inplace=True),
 		nn.Conv2d(num_channels, num_channels, 5, stride=2), nn.ReLU(inplace=True),
 		nn.Conv2d(num_channels, num_channels, 3, stride=2), nn.ReLU(inplace=True),
@@ -150,4 +154,36 @@ def enc(cfg, out={}):
 			out[k] = conv(cfg.obs_shape[k], cfg.num_channels, act=SimNorm(cfg))
 		else:
 			raise NotImplementedError(f"Encoder for observation type {k} not implemented.")
+	return nn.ModuleDict(out)
+
+def t2a_enc(cfg, env, out={}):
+	"""
+	Returns a dictionary of encoders for each observation in the dict.
+	Works for t2a environments.
+	"""
+
+	# rgb
+	out['rgb'] = conv(cfg.obs_shape['rgb'], cfg.num_channels, act=SimNorm(cfg))
+	rand_input = torch.randn((1, *cfg.obs_shape['rgb']), dtype=torch.float32)
+	rand_output = out['rgb'](rand_input)
+	rgb_out_dim = rand_output.shape[-1]
+ 
+	# rgb_mlp: used to encode rgb features in gnn
+	# use tanh for activation to match the range of node features
+	node_obs_size = env._get_node_obs_size()
+	out['rgb_mlp'] = mlp(rgb_out_dim, max(cfg.num_enc_layers-1, 1)*[cfg.enc_dim], node_obs_size, act=torch.nn.Tanh())
+ 
+	# gnn
+	node_obs_size = env._get_node_obs_size()
+	gnn_input_size = node_obs_size
+	gnn_spec = cfg['transform2act']['policy_specs']['control_gnn_specs']
+	out['gnn'] = GNNSimple(in_dim=gnn_input_size, cfg=gnn_spec, node_dim=1)
+ 
+	# gnn_mlp
+	gnn_out_dim = out['gnn'].out_dim
+	out['gnn_mlp'] = mlp(gnn_out_dim, max(cfg.num_enc_layers-1, 1)*[cfg.enc_dim], cfg.latent_dim, act=SimNorm(cfg))
+
+	# final mlp for final latent
+	out['final_mlp'] = mlp(cfg.latent_dim + cfg.latent_dim, max(cfg.num_enc_layers-1, 1)*[cfg.enc_dim], cfg.latent_dim, act=SimNorm(cfg))	
+ 
 	return nn.ModuleDict(out)

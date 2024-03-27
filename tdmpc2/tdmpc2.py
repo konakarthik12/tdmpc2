@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from common import math
 from common.scale import RunningScale
-from common.world_model import WorldModel
+from common.world_model import WorldModel, T2AWorldModel
 
 
 class TDMPC2:
@@ -14,10 +14,26 @@ class TDMPC2:
 	and supports both state and pixel observations.
 	"""
 
-	def __init__(self, cfg):
+	def __init__(self, cfg, env=None):
 		self.cfg = cfg
 		self.device = torch.device('cuda')
-		self.model = WorldModel(cfg).to(self.device)
+
+		# @sanghyun: find out if the environment is t2a environment,
+		# and if it is, we need to world model for it.
+		self.is_t2a = False
+		try:
+			task_name = cfg.task
+			task_env = task_name.split('_')[0]
+			if task_env == "t2a":
+				self.is_t2a = True
+		except:
+			pass
+
+		if self.is_t2a:
+			self.model = T2AWorldModel(cfg, env).to(self.device)
+		else:
+			self.model = WorldModel(cfg).to(self.device)
+		
 		self.optim = torch.optim.Adam([
 			{'params': self.model._encoder.parameters(), 'lr': self.cfg.lr*self.cfg.enc_lr_scale},
 			{'params': self.model._dynamics.parameters()},
@@ -81,14 +97,19 @@ class TDMPC2:
 		Returns:
 			torch.Tensor: Action to take in the environment.
 		"""
-		obs = obs.to(self.device, non_blocking=True).unsqueeze(0)
 		if task is not None:
 			task = torch.tensor([task], device=self.device)
+		if self.is_t2a:
+			obs = {k: v.to(self.device, non_blocking=True).unsqueeze(0) for k, v in obs.items()}
+		else:
+			obs = obs.to(self.device, non_blocking=True).unsqueeze(0)
+		
 		z = self.model.encode(obs, task)
 		if self.cfg.mpc:
 			a = self.plan(z, t0=t0, eval_mode=eval_mode, task=task)
 		else:
 			a = self.model.pi(z, task)[int(not eval_mode)][0]
+	
 		return a.cpu()
 
 	@torch.no_grad()
@@ -229,7 +250,18 @@ class TDMPC2:
 	
 		# Compute targets
 		with torch.no_grad():
-			next_z = self.model.encode(obs[1:], task)
+			if self.is_t2a:
+				t_obs = obs[1:]
+				tt_obs = {}
+				# merge first two dimensions
+				l0, l1 = t_obs['rgb'].shape[0], t_obs['rgb'].shape[1]
+				tt_obs['rgb'] = t_obs['rgb'].reshape((l0 * l1, t_obs['rgb'].shape[2], t_obs['rgb'].shape[3], t_obs['rgb'].shape[4]))
+				tt_obs['node'] = t_obs['node'].reshape((l0 * l1, t_obs['node'].shape[2], t_obs['node'].shape[3]))
+				tt_obs['edge'] = t_obs['edge'].reshape((l0 * l1, t_obs['edge'].shape[2], t_obs['edge'].shape[3]))
+				next_z = self.model.encode(tt_obs, task)
+				next_z = next_z.reshape((l0, l1, -1))
+			else:
+				next_z = self.model.encode(obs[1:], task)
 			td_targets = self._td_target(next_z, reward, task)
 
 		# Prepare for update

@@ -170,3 +170,64 @@ class WorldModel(nn.Module):
 		Q1, Q2 = out[np.random.choice(self.cfg.num_q, 2, replace=False)]
 		Q1, Q2 = math.two_hot_inv(Q1, self.cfg), math.two_hot_inv(Q2, self.cfg)
 		return torch.min(Q1, Q2) if return_type == 'min' else (Q1 + Q2) / 2
+
+class T2AWorldModel(WorldModel):
+	
+	def __init__(self, cfg, env):
+		
+		nn.Module.__init__(self)
+		
+		self.cfg = cfg
+		
+		self._encoder = layers.t2a_enc(cfg, env)
+		self._dynamics = layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], cfg.latent_dim, act=layers.SimNorm(cfg))
+		self._reward = layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], max(cfg.num_bins, 1))
+		self._pi = layers.mlp(cfg.latent_dim + cfg.task_dim, 2*[cfg.mlp_dim], 2*cfg.action_dim)
+		self._Qs = layers.Ensemble([layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], max(cfg.num_bins, 1), dropout=cfg.dropout) for _ in range(cfg.num_q)])
+		self.apply(init.weight_init)
+		init.zero_([self._reward[-1].weight, self._Qs.params[-2]])
+		self._target_Qs = deepcopy(self._Qs).requires_grad_(False)
+		self.log_std_min = torch.tensor(cfg.log_std_min)
+		self.log_std_dif = torch.tensor(cfg.log_std_max) - self.log_std_min
+		
+	def encode(self, obs, task):
+		# encode rgb
+		rgb_obs = obs['rgb']
+		rgb_latent = self._encoder['rgb'](rgb_obs.to(dtype=torch.float32))
+		
+		# encode rgb to rgb node in gnn
+		rgb_node_latent = self._encoder['rgb_mlp'](rgb_latent)
+		rgb_node_latent = rgb_node_latent.unsqueeze(1)
+		
+		# encode robot
+		node_obs = obs['node']
+		edge_obs = obs['edge']
+		device = node_obs.device
+		
+		# concatenate [rgb_node_latent] to [node_obs]
+		e_node_obs = torch.cat([node_obs, rgb_node_latent], dim=1)
+		
+		# connect [rgb_node] to every other node
+		num_nodes = node_obs.shape[1]
+		n_edge_obs = []
+		for i in range(num_nodes):
+			n_edge_obs.append([i, num_nodes])
+			n_edge_obs.append([num_nodes, i])
+		
+		n_edge_obs = torch.tensor(n_edge_obs, device=device).t().to(dtype=torch.long)
+		n_edge_obs = n_edge_obs.unsqueeze(0).expand(node_obs.shape[0], -1, -1)
+		e_edge_obs = torch.cat([edge_obs, n_edge_obs], dim=2)
+			
+		# encode robot node in gnn
+		robot_latent = self._encoder['gnn'](e_node_obs, e_edge_obs[0])
+		
+		# additional mlp for robot latent
+		robot_latent = self._encoder['gnn_mlp'](robot_latent)
+		
+		# concatenate [robot_latent] to [rgb_latent]
+		prefinal_latent = torch.cat([rgb_latent, robot_latent], dim=-1)
+		
+		# final ml
+		latent = self._encoder['final_mlp'](prefinal_latent)
+		
+		return latent
