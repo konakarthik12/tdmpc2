@@ -1,0 +1,3 @@
+[submodule "external/traj_collect"]
+	path = external/traj_collect
+	url = https://github.com/SonSang/sb3-traj-collect.git
