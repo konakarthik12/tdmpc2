@@ -86,6 +86,7 @@ action_dims: ???
 episode_lengths: ???
 seed_steps: ???
 bin_size: ???
+sb3_algo: ppo       # for trajectory collection
 
 # transform2act params
 transform2act:
