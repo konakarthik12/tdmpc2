@@ -132,9 +132,9 @@ class CollectPPO(PPO):
 
         callback.on_rollout_start()
         
-        # @sanghyun: Make sure [self._last_rgb] is not None
+        # @sanghyun: Make sure [self._last_rgb, self._last_info] is not None
         self._last_rgb = env.render(mode='rgb_array')
-
+        
         while n_steps < n_rollout_steps:
             if self.use_sde and self.sde_sample_freq > 0 and n_steps % self.sde_sample_freq == 0:
                 # Sample a new noise matrix
@@ -173,10 +173,7 @@ class CollectPPO(PPO):
             Only care about first environment if there are many.
             '''
             new_rgb = env.render(mode='rgb_array')
-            self.trajectory_collector.add_step(
-                self._last_obs[0], self._last_rgb,
-                actions[0], rewards[0], new_obs[0], new_rgb, dones[0]
-            )
+            self.trajectory_collector.add_step(self._last_obs, self._last_rgb[None], actions, rewards, new_obs, new_rgb[None], dones[0])
             self._last_rgb = new_rgb
             '''
             ========================

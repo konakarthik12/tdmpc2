@@ -56,6 +56,16 @@ class T2AWrapper(gym.Wrapper):
   
 		return {'rgb': img_obs, 'node': node_obs, 'edge': edge_obs}
 
+	def _get_graph_obs(self):
+		# dict state
+		state = self.env._get_obs()
+		node = state[0]
+		edge = state[1]
+		node_obs = torch.from_numpy(node).to(dtype=torch.float32)
+		edge_obs = torch.from_numpy(edge).to(dtype=torch.long)
+  
+		return {'node': node_obs, 'edge': edge_obs}
+
 	def _get_node_obs_size(self):
 		return self.observation_space.spaces['node'].shape[1]
 
@@ -68,7 +78,9 @@ class T2AWrapper(gym.Wrapper):
 	def step(self, action):
 		if action.ndim == 1:
 			action = action.reshape((-1, 1))
-		_, reward, done, info = self.env.step(action.numpy())
+		if isinstance(action, torch.Tensor):
+			action = action.cpu().numpy()
+		_, reward, done, info = self.env.step(action)
 		reward = torch.tensor(reward, dtype=torch.float32)
 		return self._get_obs(), reward, done, info
 

@@ -15,6 +15,7 @@ from envs import make_env
 from collect.ppo import CollectPPO
 from collect.sac import CollectSAC
 from envs.wrappers.tensor import TensorWrapper
+from envs.wrappers.t2a import T2AWrapper
 import gym
 
 torch.backends.cudnn.benchmark = True
@@ -34,6 +35,16 @@ class SB3Env(gym.Env):
 		
 		self.action_space = self.env.action_space
 		self.observation_space = self.env.observation_space
+  
+		'''
+		If it is an t2a environment, observation is comprised of:
+		- rgb
+		- node
+		- edge
+		
+		We only use rgb image for trajectory collection.
+  		'''
+		self.is_t2a_env = isinstance(self.env, T2AWrapper)
 		self.render_mode = "rgb_array"
 		
 	def step(self, action):
@@ -69,10 +80,16 @@ def collect(cfg: dict):
 	env = make_env(cfg)
 	env = SB3Env(env)
  
+	'''
+	If the environment is T2A environment, we use CNN policy.
+	Otherwise, we use MLP policy.
+ 	'''
+	policy = 'MultiInputPolicy' if env.is_t2a_env else 'MlpPolicy'
+ 
 	if cfg.sb3_algo == "ppo":
-		model = CollectPPO('MlpPolicy', env, verbose=1, tensorboard_log=logdir)
+		model = CollectPPO(policy, env, verbose=1, tensorboard_log=logdir)
 	elif cfg.sb3_algo == "sac":
-		model = CollectSAC('MlpPolicy', env, verbose=1, tensorboard_log=logdir)
+		model = CollectSAC(policy, env, verbose=1, tensorboard_log=logdir)
 	else:
 		raise ValueError(f"Unsupported SB3 algorithm: {cfg.sb3_algo}")
 	model.learn(total_timesteps=cfg.steps,)
@@ -92,38 +109,81 @@ def collect(cfg: dict):
 			zip_ref.extractall(unzip_path)
 
 		traj_path = unzip_path
-		# load the trajectory
-		prev_obs = np.load(os.path.join(traj_path, 'prev_obs.npy'))
-		next_obs = np.load(os.path.join(traj_path, 'next_obs.npy'))
-		prev_rgb = np.load(os.path.join(traj_path, 'prev_rgb.npy'))
-		next_rgb = np.load(os.path.join(traj_path, 'next_rgb.npy'))
-		action = np.load(os.path.join(traj_path, 'action.npy'))
-		reward = np.load(os.path.join(traj_path, 'reward.npy'))
-  
-		# save first 10 frames
-		num_frames = min(10, len(prev_rgb))
-		for i in range(num_frames):
-			step_path = os.path.join(traj_path, f'step_{i}')
-			os.makedirs(step_path, exist_ok=True)
-   
-			# save the images
-			prev_rgb_path = os.path.join(step_path, 'prev_rgb.png')
-			next_rgb_path = os.path.join(step_path, 'next_rgb.png')
-			from PIL import Image
-			Image.fromarray(prev_rgb[i]).save(prev_rgb_path)
-			Image.fromarray(next_rgb[i]).save(next_rgb_path)
-   
-			# save the observation as txt
-			prev_obs_path = os.path.join(step_path, 'prev_obs.txt')
-			next_obs_path = os.path.join(step_path, 'next_obs.txt')
-			np.savetxt(prev_obs_path, prev_obs[i])
-			np.savetxt(next_obs_path, next_obs[i])
-   
-			# save the action and reward
-			action_path = os.path.join(step_path, 'action.txt')
-			reward_path = os.path.join(step_path, 'reward.txt')
-			np.savetxt(action_path, action[i])
-			np.savetxt(reward_path, reward.reshape(-1, 1)[i])
+		if env.is_t2a_env:
+			# load the trajectory
+			prev_node = np.load(os.path.join(traj_path, 'prev_obs_node.npy'))
+			next_node = np.load(os.path.join(traj_path, 'next_obs_node.npy'))
+			prev_edge = np.load(os.path.join(traj_path, 'prev_obs_edge.npy'))
+			next_edge = np.load(os.path.join(traj_path, 'next_obs_edge.npy'))
+			prev_rgb = np.load(os.path.join(traj_path, 'prev_rgb.npy'))
+			next_rgb = np.load(os.path.join(traj_path, 'next_rgb.npy'))
+			action = np.load(os.path.join(traj_path, 'action.npy'))
+			reward = np.load(os.path.join(traj_path, 'reward.npy'))
+	
+			# save first 10 frames
+			num_frames = min(10, len(prev_rgb))
+			for i in range(num_frames):
+				step_path = os.path.join(traj_path, f'step_{i}')
+				os.makedirs(step_path, exist_ok=True)
+	
+				# save the images
+				prev_rgb_path = os.path.join(step_path, 'prev_rgb.png')
+				next_rgb_path = os.path.join(step_path, 'next_rgb.png')
+				from PIL import Image
+				Image.fromarray(prev_rgb[i]).save(prev_rgb_path)
+				Image.fromarray(next_rgb[i]).save(next_rgb_path)
+	
+				# save the node as txt
+				prev_node_path = os.path.join(step_path, 'prev_node.txt')
+				next_node_path = os.path.join(step_path, 'next_node.txt')
+				np.savetxt(prev_node_path, prev_node[i])
+				np.savetxt(next_node_path, next_node[i])
+    
+				# save the edge as txt
+				prev_edge_path = os.path.join(step_path, 'prev_edge.txt')
+				next_edge_path = os.path.join(step_path, 'next_edge.txt')
+				np.savetxt(prev_edge_path, prev_edge[i])
+				np.savetxt(next_edge_path, next_edge[i])
+	
+				# save the action and reward
+				action_path = os.path.join(step_path, 'action.txt')
+				reward_path = os.path.join(step_path, 'reward.txt')
+				np.savetxt(action_path, action[i])
+				np.savetxt(reward_path, reward.reshape(-1, 1)[i])
+      
+		else:
+			# load the trajectory
+			prev_obs = np.load(os.path.join(traj_path, 'prev_obs.npy'))
+			next_obs = np.load(os.path.join(traj_path, 'next_obs.npy'))
+			prev_rgb = np.load(os.path.join(traj_path, 'prev_rgb.npy'))
+			next_rgb = np.load(os.path.join(traj_path, 'next_rgb.npy'))
+			action = np.load(os.path.join(traj_path, 'action.npy'))
+			reward = np.load(os.path.join(traj_path, 'reward.npy'))
+	
+			# save first 10 frames
+			num_frames = min(10, len(prev_rgb))
+			for i in range(num_frames):
+				step_path = os.path.join(traj_path, f'step_{i}')
+				os.makedirs(step_path, exist_ok=True)
+	
+				# save the images
+				prev_rgb_path = os.path.join(step_path, 'prev_rgb.png')
+				next_rgb_path = os.path.join(step_path, 'next_rgb.png')
+				from PIL import Image
+				Image.fromarray(prev_rgb[i]).save(prev_rgb_path)
+				Image.fromarray(next_rgb[i]).save(next_rgb_path)
+	
+				# save the observation as txt
+				prev_obs_path = os.path.join(step_path, 'prev_obs.txt')
+				next_obs_path = os.path.join(step_path, 'next_obs.txt')
+				np.savetxt(prev_obs_path, prev_obs[i])
+				np.savetxt(next_obs_path, next_obs[i])
+	
+				# save the action and reward
+				action_path = os.path.join(step_path, 'action.txt')
+				reward_path = os.path.join(step_path, 'reward.txt')
+				np.savetxt(action_path, action[i])
+				np.savetxt(reward_path, reward.reshape(-1, 1)[i])
 
 if __name__ == '__main__':
 	collect()
