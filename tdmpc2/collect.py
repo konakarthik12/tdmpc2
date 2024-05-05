@@ -17,6 +17,7 @@ from collect.sac import CollectSAC
 from envs.wrappers.tensor import TensorWrapper
 from envs.wrappers.t2a import T2AWrapper
 from envs.wrappers.mjgraph.mjgraph import MJGraphWrapper
+from stable_baselines3.common.callbacks import CheckpointCallback
 import gym
 
 from copy import deepcopy
@@ -118,6 +119,15 @@ def collect(cfg: dict):
 	env = SB3Env(env)
  
 	'''
+	Checkpoint callback: save at every 10K steps
+ 	'''
+	ckpt_callback = CheckpointCallback(
+     	save_freq=10000, 
+      	save_path=logdir, 
+       	name_prefix='model'
+    )
+ 
+	'''
 	If the environment is T2A environment, we use CNN policy.
 	Otherwise, we use MLP policy.
  	'''
@@ -129,7 +139,7 @@ def collect(cfg: dict):
 		model = CollectSAC(policy, env, verbose=1, tensorboard_log=logdir)
 	else:
 		raise ValueError(f"Unsupported SB3 algorithm: {cfg.sb3_algo}")
-	model.learn(total_timesteps=cfg.steps,)
+	model.learn(total_timesteps=cfg.steps, callback=ckpt_callback)
 	print('\nTraining completed successfully')
  
 	'''
