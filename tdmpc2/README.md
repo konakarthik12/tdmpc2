@@ -16,8 +16,7 @@ pip install -e .
 Finally, run following commands to test trajectory collection. See `tdmpc2/collect.py` for more details.
 
 ```bash
-python tdmpc2/collect.py task=dog_run sb3_algo=ppo steps=1000       # regular tdmpc2 env
-python tdmpc2/collect.py task=t2a_ant sb3_algo=sac steps=1000       # t2a env, which also stores graph node & edge info
+python tdmpc2/collect.py task=walker_walk sb3_algo=sac steps=1000 morphology=True morphology_seed=1      # DMControl Env
 ```
 
 Find the saved trajectory and the parsed version of it at the `outputs` directory.
