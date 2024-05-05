@@ -16,7 +16,10 @@ from collect.ppo import CollectPPO
 from collect.sac import CollectSAC
 from envs.wrappers.tensor import TensorWrapper
 from envs.wrappers.t2a import T2AWrapper
+from envs.wrappers.mjgraph.mjgraph import MJGraphWrapper
 import gym
+
+from copy import deepcopy
 
 torch.backends.cudnn.benchmark = True
 
@@ -37,7 +40,7 @@ class SB3Env(gym.Env):
 		self.observation_space = self.env.observation_space
   
 		'''
-		If it is an t2a environment, observation is comprised of:
+		If it is a t2a environment, observation is comprised of:
 		- rgb
 		- node
 		- edge
@@ -45,16 +48,45 @@ class SB3Env(gym.Env):
 		We only use rgb image for trajectory collection.
   		'''
 		self.is_t2a_env = isinstance(self.env, T2AWrapper)
+  
+		'''
+		If it is a mjgraph environment, observation is comprised of:
+		- state
+		- rgb
+		- node
+		- edge
+  		'''
+		self.is_mjgraph_env = isinstance(self.env, MJGraphWrapper)
+		if self.is_mjgraph_env:
+			self.observation_space = self.env.observation_space.spaces['state']
+   
 		self.render_mode = "rgb_array"
+		self._last_info = None
 		
 	def step(self, action):
 		obs, reward, done, info = self.env.step(action)
 		truncated = done	# SB3 requires this
+		
+		if self.is_mjgraph_env:
+			info['srgb'] = obs['srgb']
+			info['node'] = obs['node']
+			info['edge'] = obs['edge']
+			obs = obs['state']
+			self._last_info = deepcopy(info)
+   
 		return obs, reward, done, truncated, info
 
 	def reset(self, seed=None, options=None):
 		obs = self.env.reset()
 		info = {}
+
+		if self.is_mjgraph_env:
+			info['srgb'] = obs['srgb']
+			info['node'] = obs['node']
+			info['edge'] = obs['edge']
+			obs = obs['state']
+			self._last_info = deepcopy(info)
+   
 		return obs, info
 
 	def render(self):
@@ -62,7 +94,6 @@ class SB3Env(gym.Env):
 
 	def close(self):
 		return self.env.close()
-
 
 @hydra.main(config_name='config', config_path='.')
 def collect(cfg: dict):
@@ -78,13 +109,19 @@ def collect(cfg: dict):
 	cfg = parse_cfg(cfg)
 
 	env = make_env(cfg)
+	# if env is MJGraphWrapper, save model
+	if isinstance(env, MJGraphWrapper):
+		model_path = os.path.join(logdir, 'model.xml')
+		with open(model_path, 'w') as f:
+			model_str = env.model.decode('utf-8')
+			f.write(model_str)
 	env = SB3Env(env)
  
 	'''
 	If the environment is T2A environment, we use CNN policy.
 	Otherwise, we use MLP policy.
  	'''
-	policy = 'MultiInputPolicy' if env.is_t2a_env else 'MlpPolicy'
+	policy = 'MultiInputPolicy' if (env.is_t2a_env) else 'MlpPolicy'
  
 	if cfg.sb3_algo == "ppo":
 		model = CollectPPO(policy, env, verbose=1, tensorboard_log=logdir)
@@ -109,7 +146,7 @@ def collect(cfg: dict):
 			zip_ref.extractall(unzip_path)
 
 		traj_path = unzip_path
-		if env.is_t2a_env:
+		if env.is_t2a_env or env.is_mjgraph_env:
 			# load the trajectory
 			prev_node = np.load(os.path.join(traj_path, 'prev_obs_node.npy'))
 			next_node = np.load(os.path.join(traj_path, 'next_obs_node.npy'))
@@ -136,14 +173,14 @@ def collect(cfg: dict):
 				# save the node as txt
 				prev_node_path = os.path.join(step_path, 'prev_node.txt')
 				next_node_path = os.path.join(step_path, 'next_node.txt')
-				np.savetxt(prev_node_path, prev_node[i])
-				np.savetxt(next_node_path, next_node[i])
+				np.savetxt(prev_node_path, prev_node[i, 0])
+				np.savetxt(next_node_path, next_node[i, 0])
     
 				# save the edge as txt
 				prev_edge_path = os.path.join(step_path, 'prev_edge.txt')
 				next_edge_path = os.path.join(step_path, 'next_edge.txt')
-				np.savetxt(prev_edge_path, prev_edge[i])
-				np.savetxt(next_edge_path, next_edge[i])
+				np.savetxt(prev_edge_path, prev_edge[i, 0])
+				np.savetxt(next_edge_path, next_edge[i, 0])
 	
 				# save the action and reward
 				action_path = os.path.join(step_path, 'action.txt')

@@ -94,11 +94,24 @@ class CollectSAC(SAC):
         '''
         assert self.env.num_envs == 1, "Only support single environment for now."
         self._last_rgb = None
+        self._last_info = None
         
         import os
         collect_logdir = os.path.join(tensorboard_log, "Traj")
         self.trajectory_collector = Collector(collect_logdir)
         
+    def _get_env_last_info(self, env):
+        c_env = env
+        while not hasattr(c_env, '_last_info'):
+            c_env = c_env.env
+        return c_env._last_info
+        
+    def get_envs_last_info(self, env: VecEnv):
+        last_infos = []
+        for i in range(env.num_envs):
+            last_infos.append(self._get_env_last_info(env.envs[i]))
+        return last_infos
+    
     def collect_rollouts(
         self,
         env: VecEnv,
@@ -144,6 +157,7 @@ class CollectSAC(SAC):
             
         # @sanghyun: Make sure [self._last_rgb] is not None
         self._last_rgb = env.render(mode='rgb_array')
+        self._last_info = self.get_envs_last_info(env)[0]
 
         callback.on_rollout_start()
         continue_training = True
@@ -157,7 +171,6 @@ class CollectSAC(SAC):
 
             # Rescale and perform action
             new_obs, rewards, dones, infos = env.step(actions)
-            new_rgb = env.render(mode='rgb_array')
             
             
             '''
@@ -172,8 +185,24 @@ class CollectSAC(SAC):
             Only care about first environment if there are many.
             '''
             new_rgb = env.render(mode='rgb_array')
-            self.trajectory_collector.add_step(self._last_obs, self._last_rgb[None], actions, rewards, new_obs, new_rgb[None], dones[0])
+            new_info = self.get_envs_last_info(env)[0]
+            
+            last_obs_dict = {}
+            last_obs_dict['state'] = self._last_obs
+            for k in self._last_info.keys():
+                if k in ('srgb', 'node', 'edge'):
+                    last_obs_dict[k] = self._last_info[k][None]
+            
+            new_obs_dict = {}
+            new_obs_dict['state'] = new_obs
+            for k in new_info.keys():
+                if k in ('srgb', 'node', 'edge'):
+                    new_obs_dict[k] = new_info[k][None]
+            
+            self.trajectory_collector.add_step(last_obs_dict, self._last_rgb[None], actions, rewards, new_obs_dict, new_rgb[None], dones[0])
+            
             self._last_rgb = new_rgb
+            self._last_info = new_info
             '''
             ========================
             '''

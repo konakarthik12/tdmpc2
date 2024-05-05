@@ -6,14 +6,20 @@ import gym
 from envs.wrappers.multitask import MultitaskWrapper
 from envs.wrappers.pixels import PixelWrapper
 from envs.wrappers.tensor import TensorWrapper
+from envs.wrappers.mjgraph.mjgraph import MJGraphWrapper
 
 from envs.wrappers.t2a import T2AWrapper
 
 def missing_dependencies(task):
 	raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.')
 
+# try:
+# 	from envs.dmcontrol import make_env as make_dm_control_env
+# except:
+# 	make_dm_control_env = missing_dependencies
+
 try:
-	from envs.dmcontrol import make_env as make_dm_control_env
+	from envs.dmcontrol2 import make_env as make_dm_control_env
 except:
 	make_dm_control_env = missing_dependencies
 try:
@@ -30,9 +36,9 @@ except:
 	make_myosuite_env = missing_dependencies
 
 try:
-    from envs.transform2act import make_env as make_transform2act_env
+	from envs.transform2act import make_env as make_transform2act_env
 except Exception as e:
-    make_transform2act_env = missing_dependencies
+	make_transform2act_env = missing_dependencies
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
@@ -85,11 +91,14 @@ def make_env(cfg):
 				pass
 		if env is None:
 			raise ValueError(f'Failed to make environment "{cfg.task}": please verify that dependencies are installed and that the task exists.')
-		if not is_t2a:
+		
+		is_our_env = (is_t2a) or (isinstance(env, MJGraphWrapper))
+		if not is_our_env:
 			env = TensorWrapper(env)
-    
-	if is_t2a:
-		env = T2AWrapper(cfg, env)
+	
+	if is_our_env:
+		if is_t2a:
+			env = T2AWrapper(cfg, env)
 	else:
 		if cfg.get('obs', 'state') == 'rgb':
 			env = PixelWrapper(cfg, env)

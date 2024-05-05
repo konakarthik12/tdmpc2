@@ -1,0 +1,2 @@
+CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=1 python tdmpc2/collect.py task=walker_walk sb3_algo=ppo steps=1000000 morphology=True morphology_seed=1
+CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=1 python tdmpc2/collect.py task=walker_walk sb3_algo=sac steps=1000000 morphology=True morphology_seed=1
