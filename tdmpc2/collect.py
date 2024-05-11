@@ -119,10 +119,10 @@ def collect(cfg: dict):
 	env = SB3Env(env)
  
 	'''
-	Checkpoint callback: save at every 10K steps
+	Checkpoint callback: save at every 100K steps
  	'''
 	ckpt_callback = CheckpointCallback(
-     	save_freq=10000, 
+     	save_freq=cfg.ckpt_step, 
       	save_path=logdir, 
        	name_prefix='model'
     )

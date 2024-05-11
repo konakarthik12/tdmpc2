@@ -16,7 +16,7 @@ pip install -e .
 Finally, run following commands to test trajectory collection. See `tdmpc2/collect.py` for more details.
 
 ```bash
-python tdmpc2/collect.py task=walker_walk sb3_algo=sac steps=1000 morphology=True morphology_seed=1      # DMControl Env
+python tdmpc2/collect.py task=walker_walk sb3_algo=sac steps=1000 morphology=True morphology_seed=1 ckpt_step=200      # DMControl Env
 ```
 
 Find the saved trajectory and the parsed version of it at the `outputs` directory.

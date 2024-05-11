@@ -89,6 +89,7 @@ bin_size: ???
 sb3_algo: ppo       # for trajectory collection
 morphology: false   # True if we want to use image + morphology observation
 morphology_seed: 1  # Seed for morphology generation
+ckpt_step: 100000   # Step to save the checkpoint
 
 # transform2act params
 transform2act:
