@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functorch import combine_state_for_ensemble
 
-from t2a.design_opt.models.gnn import GNNSimple
-
 
 class Ensemble(nn.Module):
 	"""
@@ -38,8 +36,8 @@ class ShiftAug(nn.Module):
 	def forward(self, x):
 		x = x.float()
 		n, _, h, w = x.size()
-		padding = tuple([self.pad] * 4)
 		assert h == w
+		padding = tuple([self.pad] * 4)
 		x = F.pad(x, padding, 'replicate')
 		eps = 1.0 / (h + 2 * self.pad)
 		arange = torch.linspace(-1.0 + eps, 1.0 - eps, h + 2 * self.pad, device=x.device, dtype=x.dtype)[:h]
@@ -157,6 +155,8 @@ def enc(cfg, out={}):
 	return nn.ModuleDict(out)
 
 def t2a_enc(cfg, env, out={}):
+	from t2a.design_opt.models.gnn import GNNSimple
+
 	"""
 	Returns a dictionary of encoders for each observation in the dict.
 	Works for t2a environments.
