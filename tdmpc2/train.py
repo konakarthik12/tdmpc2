@@ -1,7 +1,11 @@
 import os
+
+from omegaconf import DictConfig, OmegaConf
+
 os.environ['MUJOCO_GL'] = 'egl'
 os.environ['LAZY_LEGACY_OP'] = '0'
 import warnings
+
 warnings.filterwarnings('ignore')
 import torch
 
@@ -16,13 +20,19 @@ from tdmpc2 import TDMPC2
 from trainer.offline_trainer import OfflineTrainer
 from trainer.online_trainer import OnlineTrainer
 from common.logger import Logger
+import time
 
 torch.backends.cudnn.benchmark = True
 
+import logging
+
+log = logging.getLogger(__name__)
+import submitit
+
 
 @hydra.main(config_name='config', config_path='.')
-def train(cfg: dict):
-	"""
+def train(cfg: OmegaConf):
+    """
 	Script for training single-task / multi-task TD-MPC2 agents.
 
 	Most relevant args:
@@ -40,23 +50,42 @@ def train(cfg: dict):
 		$ python train.py task=dog-run steps=7000000
 	```
 	"""
-	assert torch.cuda.is_available()
-	assert cfg.steps > 0, 'Must train for at least 1 step.'
-	cfg = parse_cfg(cfg)
-	set_seed(cfg.seed)
-	print(colored('Work dir:', 'yellow', attrs=['bold']), cfg.work_dir)
+    
+    assert torch.cuda.is_available(), 'CUDA must be available.'
+    assert cfg.steps > 0, 'Must train for at least 1 step.'
+    cfg = parse_cfg(cfg)
+    set_seed(cfg.seed)
+    print(colored('Work dir:', 'yellow', attrs=['bold']), cfg.work_dir)
 
-	trainer_cls = OfflineTrainer if cfg.multitask else OnlineTrainer
-	trainer = trainer_cls(
-		cfg=cfg,
-		env=make_env(cfg),
-		agent=TDMPC2(cfg),
-		buffer=Buffer(cfg),
-		logger=Logger(cfg),
-	)
-	trainer.train()
-	print('\nTraining completed successfully')
+    trainer_cls = OfflineTrainer if cfg.multitask else OnlineTrainer
+    trainer = trainer_cls(
+        cfg=cfg,
+        env=make_env(cfg),
+        agent=TDMPC2(cfg),
+        buffer=Buffer(cfg),
+        logger=Logger(cfg),
+    )
+    trainer.train()
+    print('\nTraining completed successfully')
+
+
+@hydra.main(...)
+def main(cfg: OmegaConf):
+    import sys
+    import traceback
+    # This main is used to circumvent a bug in Hydra
+    # See https://github.com/facebookresearch/hydra/issues/2664
+
+    try:
+        train(cfg)
+    except BaseException:
+        traceback.print_exc(file=sys.stderr)
+        raise
+    finally:
+        # fflush everything
+        sys.stdout.flush()
+        sys.stderr.flush()
 
 
 if __name__ == '__main__':
-	train()
+    train()

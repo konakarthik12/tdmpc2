@@ -15,7 +15,7 @@ numpy==1.23.5
 omegaconf==2.3.0
 open3d==0.18.0
 opencv-contrib-python==4.9.0.80
-opencv-python==4.9.0.80
+opencv-python~=4.8.1
 pandas==2.1.4
 sapien==2.2.1
 submitit==1.5.1
@@ -50,7 +50,8 @@ wheel==0.38.0
  # myosuite
  ####################
 
-#torch requirements
---extra-index-url https://download.pytorch.org/whl/cu118
-torch==2.3.0
-torchvision==0.18.0
+# torch requirements
+# --extra-index-url https://download.pytorch.org/whl/cu118
+# torch==2.3.0
+# torchvision==0.18.0
+fsspec==2024.6.0
