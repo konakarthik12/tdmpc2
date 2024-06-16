@@ -12,13 +12,14 @@ echo "Repo url: $repo_url"
 echo "Commit hash: $commit_hash"
 echo "Overrides: $argv"
 
-mkdir $SLURM_WORK_DIR/tdmpc2
+set repo_dir $SLURM_WORK_DIR/tdmpc2
+mkdir $repo_dir
 
-git -C $SLURM_WORK_DIR/tdmpc2 init
-git -C $SLURM_WORK_DIR/tdmpc2 remote add origin $repo_url
-git -C $SLURM_WORK_DIR/tdmpc2 fetch --depth 1 origin $commit_hash
-git -C $SLURM_WORK_DIR/tdmpc2 checkout FETCH_HEAD
+git -C $repo_dir init
+git -C $repo_dir remote add origin $repo_url
+git -C $repo_dir fetch --depth 1 origin $commit_hash
+git -C $repo_dir checkout FETCH_HEAD
 
 
-. $SLURM_WORK_DIR/tdmpc2/slurm_scripts/setup_cluster.fish $SLURM_WORK_DIR
+. $repo_dir/slurm_scripts/setup_cluster.fish $SLURM_WORK_DIR
 
