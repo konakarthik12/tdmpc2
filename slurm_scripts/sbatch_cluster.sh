@@ -37,9 +37,11 @@ echo "Working directory: $(pwd)"
 
 echo "Starting job..."
 echo "with job id: $SLURM_JOB_ID"
-echo "with args: $@"
+echo "in repo: $1"
+echo "with commit: $2"
+echo "with args: "${@:2}"
 echo "Running on $(hostname)"
 echo "In directory: $(pwd)"
-mamba run --live-stream -n tdmpc2 python $SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py "$@"
+mamba run --live-stream -n tdmpc2 python $SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py "${@:2}"
 
 echo "Task complete"
