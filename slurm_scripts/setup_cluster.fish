@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-echo "Setting up cluster in $argv[1]"
+echo "Setting up cluster in (realpath $argv[1])"
 . /fs/nexus-projects/KGB-MBRL/scratch_hold/setup_all.fish $argv[1]
 
 pushd (dirname (status -f))
