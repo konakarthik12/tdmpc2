@@ -8,7 +8,7 @@ nvidia-smi
 
 set repo_url $argv[1]
 set commit_hash $argv[2]
-set argv $argv[3..-1]
+
 echo "Repo url: $repo_url"
 echo "Commit hash: $commit_hash"
 echo "Overrides: $argv"
@@ -23,8 +23,3 @@ git -C tdmpc2 checkout FETCH_HEAD
 
 . tdmpc2/setup_cluster.fish .
 
-echo "Starting job..."
-echo "with job id: $SLURM_JOB_ID"
-echo "with args: $argv"
-echo "Running on $(hostname)"
-echo "In directory: $(pwd)"

@@ -34,6 +34,12 @@ mkdir $SLURM_WORK_DIR/work_dir
 cd $SLURM_WORK_DIR/work_dir
 echo "Working directory: $(pwd)"
 
-mamba run --live-stream -n tdmpc2 python $SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py $argv
+
+echo "Starting job..."
+echo "with job id: $SLURM_JOB_ID"
+echo "with args: $@"
+echo "Running on $(hostname)"
+echo "In directory: $(pwd)"
+mamba run --live-stream -n tdmpc2 python $SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py "$@"
 
 echo "Task complete"
