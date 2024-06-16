@@ -30,7 +30,6 @@ git -C tdmpc2 remote add origin $repo_url
 git -C tdmpc2 fetch --depth 1 origin $commit_hash
 git -C tdmpc2 checkout FETCH_HEAD
 
-
 mkdir work_dir
 cd work_dir
 
