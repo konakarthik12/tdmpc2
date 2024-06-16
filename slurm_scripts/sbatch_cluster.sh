@@ -23,5 +23,12 @@ else
 fi
 cd "$(dirname "$OG_PATH")" || (echo "Could not cd to og script" && exit 1)
 
-export OG_PATH
-fish sbatch_cluster.fish "$@"
+
+fish $OG_PATH/sbatch_cluster.fish "$@"
+
+echo "Running task for real..."
+echo "Working directory: $(pwd)"
+
+mamba run --live-stream -n tdmpc2 python ../tdmpc2/tdmpc2/train.py $argv
+
+echo "Task complete"
