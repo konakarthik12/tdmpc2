@@ -22,11 +22,10 @@ if [ -n "${SLURM_JOB_ID:-}" ] ; then
 else
     OG_PATH=$(realpath "$0")
 fi
-
 OG_PATH=$(dirname $OG_PATH)
 SLURM_WORK_DIR=$SCRATCH_DIR/slurm_runs/$SLURM_JOB_ID/
-
-fish $OG_PATH/sbatch_cluster.fish $SLURM_WORK_DIR "$@"
+export OG_PATH SLURM_WORK_DIR
+fish $OG_PATH/sbatch_cluster.fish "$@"
 
 cd $SLURM_WORK_DIR
 echo "Running task for real..."

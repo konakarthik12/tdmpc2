@@ -18,7 +18,7 @@ echo "Repo url: $repo_url"
 echo "Commit hash: $commit_hash"
 echo "Overrides: $argv"
 
-. setup_cluster.fish .
+. $OG_PATH/setup_cluster.fish .
 
 mkdir tdmpc2
 
