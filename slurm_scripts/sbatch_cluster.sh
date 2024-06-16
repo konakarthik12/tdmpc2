@@ -21,7 +21,6 @@ if [ -n "${SLURM_JOB_ID:-}" ] ; then
 else
     OG_PATH=$(realpath "$0")
 fi
-cd "$(dirname "$OG_PATH")" || (echo "Could not cd to og script" && exit 1)
 
 
 fish $OG_PATH/sbatch_cluster.fish "$@"
