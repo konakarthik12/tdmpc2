@@ -39,9 +39,6 @@ cd work_dir
 echo "Running task for real..."
 echo "Working directory: $(pwd)"
 
-
-
-cd tdmpc2
 mamba run --live-stream -n tdmpc2 python ../tdmpc2/tdmpc2/train.py $argv
 
 echo "Task complete"

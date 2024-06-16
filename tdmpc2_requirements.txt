@@ -30,8 +30,8 @@ torchrl-nightly==2024.3.26
 transforms3d==0.4.1
 trimesh==4.0.9
 tqdm==4.66.1
-wandb==0.16.2
-wheel==0.38.0
+wandb==0.17.1
+# wheel==0.38.0
  ####################
  # Gym:
  # (unmaintained but required for maniskill2/meta-world/myosuite)
