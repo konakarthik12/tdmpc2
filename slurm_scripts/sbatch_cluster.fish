@@ -1,6 +1,5 @@
 #!/nfshomes/kkona/local/bin/fish
-
-set slurm_dir $SCRATCH_DIR/slurm_runs/$SLURM_JOB_ID/
+set slurm_dir $argv[1]
 mkdir -p $slurm_dir
 cd $slurm_dir
 

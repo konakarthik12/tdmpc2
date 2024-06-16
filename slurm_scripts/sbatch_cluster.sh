@@ -23,10 +23,11 @@ else
     OG_PATH=$(realpath "$0")
 fi
 
+SLURM_WORK_DIR=$SCRATCH_DIR/slurm_runs/$SLURM_JOB_ID/
 
-work_dir=$(fish $OG_PATH/sbatch_cluster.fish "$@")
+fish $OG_PATH/sbatch_cluster.fish $SLURM_WORK_DIR "$@"
 
-cd $work_dir
+cd $SLURM_WORK_DIR
 echo "Running task for real..."
 echo "Working directory: $(pwd)"
 
