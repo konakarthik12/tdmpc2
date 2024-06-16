@@ -11,6 +11,7 @@ if ! set commit_hash (verify_changes_pushed)
     echo $commit_hash
     exit 1
 end
+echo "Repo url: $repo_url"
 
 echo "Commit hash: $commit_hash"
 if test (count $argv) -le 1

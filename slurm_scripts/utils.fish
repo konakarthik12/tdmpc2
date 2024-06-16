@@ -1,9 +1,6 @@
 #!/nfshomes/kkona/local/bin/fish
 
 
-function testing
-    echo "testinga"
-end
 function verify_changes_pushed
     set origin_url (git config --get remote.origin.url)
 
