@@ -3,7 +3,6 @@ mkdir -p $SLURM_WORK_DIR
 cd $SLURM_WORK_DIR
 
 
-
 nvidia-smi
 
 set repo_url $argv[1]
@@ -21,5 +20,5 @@ git -C tdmpc2 fetch --depth 1 origin $commit_hash
 git -C tdmpc2 checkout FETCH_HEAD
 
 
-. tdmpc2/setup_cluster.fish .
+. tdmpc2/setup_cluster.fish $SLURM_WORK_DIR
 
