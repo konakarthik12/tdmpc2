@@ -19,8 +19,6 @@ echo "Repo url: $repo_url"
 echo "Commit hash: $commit_hash"
 echo "Overrides: $argv"
 
-
-
 . setup_cluster.fish $slurm_dir
 
 cd $slurm_dir
