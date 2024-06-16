@@ -20,5 +20,5 @@ git -C $SLURM_WORK_DIR/tdmpc2 fetch --depth 1 origin $commit_hash
 git -C $SLURM_WORK_DIR/tdmpc2 checkout FETCH_HEAD
 
 
-. $SLURM_WORK_DIR/tdmpc2/setup_cluster.fish $SLURM_WORK_DIR
+. $SLURM_WORK_DIR/tdmpc2/slurm_scripts/setup_cluster.fish $SLURM_WORK_DIR
 
