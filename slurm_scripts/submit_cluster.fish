@@ -14,6 +14,8 @@ end
 echo "Repo url: $repo_url"
 
 echo "Commit hash: $commit_hash"
+echo "Overrides: $argv"
+
 if test (count $argv) -le 1
     echo "Usage: submit_cluster.fish <task_name> <task_args...>"
     exit 1
