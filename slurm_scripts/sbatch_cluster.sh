@@ -23,27 +23,8 @@ else
   OG_PATH=$(realpath "$0")
 fi
 OG_PATH=$(dirname "$OG_PATH")
-echo "OG_PATH: $OG_PATH"
+
 SLURM_WORK_DIR=$SCRATCH_DIR/slurm_runs/$SLURM_JOB_ID/
 export OG_PATH SLURM_WORK_DIR
 fish "$OG_PATH/sbatch_cluster.fish" "$@"
 
-cd "$SLURM_WORK_DIR" || exit 1
-
-echo "Running task for real..."
-work_dir="$SLURM_WORK_DIR/work_dir"
-mkdir "$work_dir"
-cd "$work_dir" || exit 1
-echo "Working directory: $(pwd)"
-
-echo "Starting job..."
-echo "with job id: $SLURM_JOB_ID"
-echo "in repo: $1"
-echo "with commit: $2"
-echo "with args: ${*:3}"
-echo "Running on $(hostname)"
-echo "In directory: $(pwd)"
-conda run -n tdmpc2 pip show wandb
-conda run -n tdmpc2 --live-stream python "$SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py" "${@:3}"
-
-echo "Task complete"
