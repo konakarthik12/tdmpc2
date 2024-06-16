@@ -39,7 +39,6 @@ echo "with commit: $argv[2]"
 echo "with args: $argv[3..-1]"
 echo "Running on $(hostname)"
 echo "In directory: $(pwd)"
-conda run -n tdmpc2 pip show wandb
 conda run -n tdmpc2 --live-stream python "$SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py" $argv[3..-1]
 
 echo "Task complete"
