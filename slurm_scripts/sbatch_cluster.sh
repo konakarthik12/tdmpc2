@@ -12,6 +12,7 @@
 #SBATCH --gres=gpu:rtx2080ti:1
 #SBATCH --account=nexus
 #SBATCH --partition=tron
+
 #srun -N 1 --mem=512mb bash -c "hostname; python3 --version" &   # use srun to invoke commands within your job; using an '&'
 #srun -N 1 --mem=512mb bash -c "hostname; python3 --version" &   # will background the process allowing them to run concurrently
 #wait                                                            # wait for any background processes to complete
@@ -23,8 +24,9 @@ else
 fi
 
 
-fish $OG_PATH/sbatch_cluster.fish "$@"
+work_dir=$(fish $OG_PATH/sbatch_cluster.fish "$@")
 
+cd $work_dir
 echo "Running task for real..."
 echo "Working directory: $(pwd)"
 
