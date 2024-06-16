@@ -12,7 +12,7 @@ echo "Repo url: $repo_url"
 echo "Commit hash: $commit_hash"
 echo "Overrides: $argv"
 
-mkdir tdmpc2
+mkdir $SLURM_WORK_DIR/tdmpc2
 
 git -C tdmpc2 init
 git -C tdmpc2 remote add origin $repo_url
