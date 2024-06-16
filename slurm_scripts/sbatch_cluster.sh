@@ -17,33 +17,33 @@
 #srun -N 1 --mem=512mb bash -c "hostname; python3 --version" &   # will background the process allowing them to run concurrently
 #wait                                                            # wait for any background processes to complete
 
-if [ -n "${SLURM_JOB_ID:-}" ] ; then
-    OG_PATH=$(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
+if [ -n "${SLURM_JOB_ID:-}" ]; then
+  OG_PATH=$(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
 else
-    OG_PATH=$(realpath "$0")
+  OG_PATH=$(realpath "$0")
 fi
-OG_PATH=$(dirname $OG_PATH)
+OG_PATH=$(dirname "$OG_PATH")
 echo "OG_PATH: $OG_PATH"
 SLURM_WORK_DIR=$SCRATCH_DIR/slurm_runs/$SLURM_JOB_ID/
 export OG_PATH SLURM_WORK_DIR
-fish $OG_PATH/sbatch_cluster.fish "$@"
+fish "$OG_PATH/sbatch_cluster.fish" "$@"
 
-cd $SLURM_WORK_DIR
+cd "$SLURM_WORK_DIR" || exit 1
 
 echo "Running task for real..."
-mkdir $SLURM_WORK_DIR/work_dir
-cd $SLURM_WORK_DIR/work_dir
+work_dir="$SLURM_WORK_DIR/work_dir"
+mkdir "$work_dir"
+cd "$work_dir" || exit 1
 echo "Working directory: $(pwd)"
-
 
 echo "Starting job..."
 echo "with job id: $SLURM_JOB_ID"
 echo "in repo: $1"
 echo "with commit: $2"
-echo "with args: ${@:3}"
+echo "with args: ${*:3}"
 echo "Running on $(hostname)"
 echo "In directory: $(pwd)"
-mamba run --live-stream -n tdmpc2 python $SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py "${@:3}"
-
+conda run -n tdmpc2 pip show wandb
+conda run -n tdmpc2 --live-stream python "$SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py" "${@:3}"
 
 echo "Task complete"

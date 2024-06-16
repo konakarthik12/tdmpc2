@@ -11,4 +11,5 @@ conda env update -n tdmpc2 -f environment.yaml -q
 
 conda run -n tdmpc2 pip install "git+https://github.com/StanfordVL/OmniGibson@v1.0.0#egg=omnigibson" -q
 conda run -n tdmpc2 pip install -r tdmpc2_requirements.txt -q
+conda run -n tdmpc2 pip show wandb
 popd
