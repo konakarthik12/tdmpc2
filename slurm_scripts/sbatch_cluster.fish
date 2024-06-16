@@ -42,6 +42,6 @@ echo "Working directory: $(pwd)"
 
 
 cd tdmpc2
-mamba run --live-stream -n tdmpc2 python ../tdmpc2/train.py $argv
+mamba run --live-stream -n tdmpc2 python ../tdmpc2/tdmpc2/train.py $argv
 
 echo "Task complete"
