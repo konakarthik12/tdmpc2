@@ -14,11 +14,11 @@ echo "Overrides: $argv"
 
 mkdir $SLURM_WORK_DIR/tdmpc2
 
-git -C tdmpc2 init
-git -C tdmpc2 remote add origin $repo_url
-git -C tdmpc2 fetch --depth 1 origin $commit_hash
-git -C tdmpc2 checkout FETCH_HEAD
+git -C $SLURM_WORK_DIR/tdmpc2 init
+git -C $SLURM_WORK_DIR/tdmpc2 remote add origin $repo_url
+git -C $SLURM_WORK_DIR/tdmpc2 fetch --depth 1 origin $commit_hash
+git -C $SLURM_WORK_DIR/tdmpc2 checkout FETCH_HEAD
 
 
-. tdmpc2/setup_cluster.fish $SLURM_WORK_DIR
+. $SLURM_WORK_DIR/tdmpc2/setup_cluster.fish $SLURM_WORK_DIR
 
