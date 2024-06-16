@@ -28,9 +28,12 @@ export OG_PATH SLURM_WORK_DIR
 fish $OG_PATH/sbatch_cluster.fish "$@"
 
 cd $SLURM_WORK_DIR
+
 echo "Running task for real..."
+mkdir $SLURM_WORK_DIR/work_dir
+cd $SLURM_WORK_DIR/work_dir
 echo "Working directory: $(pwd)"
 
-mamba run --live-stream -n tdmpc2 python ../tdmpc2/tdmpc2/train.py $argv
+mamba run --live-stream -n tdmpc2 python $SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py $argv
 
 echo "Task complete"

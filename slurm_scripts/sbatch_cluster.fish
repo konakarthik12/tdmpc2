@@ -2,11 +2,7 @@
 mkdir -p $SLURM_WORK_DIR
 cd $SLURM_WORK_DIR
 
-echo "Starting job..."
-echo "with job id: $SLURM_JOB_ID"
-echo "with args: $argv"
-echo "Running on $(hostname)"
-echo "In directory: $(pwd)"
+
 
 nvidia-smi
 
@@ -24,4 +20,11 @@ git -C tdmpc2 remote add origin $repo_url
 git -C tdmpc2 fetch --depth 1 origin $commit_hash
 git -C tdmpc2 checkout FETCH_HEAD
 
+
 . tdmpc2/setup_cluster.fish .
+
+echo "Starting job..."
+echo "with job id: $SLURM_JOB_ID"
+echo "with args: $argv"
+echo "Running on $(hostname)"
+echo "In directory: $(pwd)"
