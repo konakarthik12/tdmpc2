@@ -3,7 +3,7 @@ defaults:
 
 # environment
 task: ???
-obs: state
+obs: ???
 
 # evaluation
 checkpoint: ???

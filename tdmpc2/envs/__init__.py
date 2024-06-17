@@ -1,3 +1,5 @@
+import os.path
+import inspect
 from copy import deepcopy
 import warnings
 
@@ -7,26 +9,33 @@ from envs.wrappers.multitask import MultitaskWrapper
 from envs.wrappers.pixels import PixelWrapper
 from envs.wrappers.tensor import TensorWrapper
 
-def missing_dependencies(task):
-	raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.')
-
+def missing_dependencies(missing_error):
+	def handle_call(task):
+		if 'task' in task:
+			task = task['task']
+		raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.\n{missing_error}')
+	return handle_call
 try:
 	from envs.dmcontrol import make_env as make_dm_control_env
-except:
-	make_dm_control_env = missing_dependencies
+except ImportError as e:
+	make_dm_control_env = missing_dependencies(e)
 try:
 	from envs.maniskill import make_env as make_maniskill_env
-except:
-	make_maniskill_env = missing_dependencies
+except ImportError as e:
+	make_maniskill_env = missing_dependencies(e)
 try:
 	from envs.metaworld import make_env as make_metaworld_env
-except:
-	make_metaworld_env = missing_dependencies
+except ImportError as e:
+	make_metaworld_env = missing_dependencies(e)
 try:
 	from envs.myosuite import make_env as make_myosuite_env
-except:
-	make_myosuite_env = missing_dependencies
+except ImportError as e:
+	make_myosuite_env = missing_dependencies(e)
 
+try:
+	from envs.omnigib import make_env as make_omnigib_env
+except ImportError as e:
+	make_omnigib_env = missing_dependencies(e)
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
@@ -50,7 +59,7 @@ def make_multitask_env(cfg):
 	cfg.action_dims = env._action_dims
 	cfg.episode_lengths = env._episode_lengths
 	return env
-	
+
 
 def make_env(cfg):
 	"""
@@ -62,13 +71,15 @@ def make_env(cfg):
 
 	else:
 		env = None
-		for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env, make_myosuite_env]:
+		errors = []
+		for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env, make_myosuite_env,make_omnigib_env]:
 			try:
 				env = fn(cfg)
-			except ValueError:
+			except ValueError as e:
+				errors.append(os.path.abspath(inspect.getsourcefile(fn)) + ': ' + str(e))
 				pass
 		if env is None:
-			raise ValueError(f'Failed to make environment "{cfg.task}": please verify that dependencies are installed and that the task exists.')
+			raise ValueError(f'Failed to make environment "{cfg.task}": please verify that dependencies are installed and that the task exists.\nErrors:\n' + '\n\n\n'.join(errors))
 		env = TensorWrapper(env)
 	if cfg.get('obs', 'state') == 'rgb':
 		env = PixelWrapper(cfg, env)

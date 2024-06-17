@@ -1,0 +1,52 @@
+env:
+  action_frequency: 60                  # (int): environment executes action at the action_frequency rate
+  physics_frequency: 60                 # (int): physics frequency (1 / physics_timestep for physx)
+  device: "cuda"                          # (None or str): specifies the device to be used if running on the gpu with torch backend
+  automatic_reset: false                # (bool): whether to automatic reset after an episode finishes
+  flatten_action_space: false           # (bool): whether to flatten the action space as a sinle 1D-array
+  flatten_obs_space: false              # (bool): whether the observation space should be flattened when generated
+  initial_pos_z_offset: 0.1
+  external_sensors:
+    - sensor_type: VisionSensor
+      modalities: [ rgb ]
+      sensor_kwargs:
+        image_height: 384
+        image_width: 384
+      local_position: [ 0.82634, -0.92151, 1.9347 ]
+      local_orientation: [0.30231,  -0.0229, -0.07199, 0.95021,  ]
+
+
+render:
+  viewer_width: 1280
+  viewer_height: 720
+
+scene:
+  type: Scene
+
+
+robots:
+  - type: Fetch
+    obs_modalities: [ rgb ]
+    scale: 1.0
+    self_collision: false
+    action_normalize: true
+    action_type: continuous
+    grasping_mode: physical
+    rigid_trunk: true
+
+
+extra:
+  table:
+    type: DatasetObject
+    name: table
+    category: breakfast_table
+    model: lcsizg
+    bounding_box: [ 1, 1, 0.8 ]
+    fixed_base: true
+    position: [ 1.1, -0.1, 0.6 ]
+    orientation: [ 0, 0, 0.707, 0.707 ]
+
+
+task:
+  type: DummyTask
+
