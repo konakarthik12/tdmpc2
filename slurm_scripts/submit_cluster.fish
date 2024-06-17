@@ -3,10 +3,11 @@
 cd (dirname (status -f))
 . ./utils.fish
 
-if ! set task_name (python3 extract_task_name.py $argv)
+if ! set task_name (python3 extract_task_name.py $argv ^/dev/null)
     . /fs/nexus-projects/KGB-MBRL/scratch_hold/init_scratch_dir.fish
     . /fs/nexus-projects/KGB-MBRL/scratch_hold/setup_conda.fish
 end
+
 
 if ! set task_name (python3 extract_task_name.py $argv)
     echo "Failed to extract task name"
