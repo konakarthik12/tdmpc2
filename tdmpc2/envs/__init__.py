@@ -13,7 +13,7 @@ def missing_dependencies(missing_error):
 	def handle_call(task):
 		if 'task' in task:
 			task = task['task']
-		raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.\n{missing_error}')
+		raise ValueError(f'Missing dependencies for task {task}; install dependencies to use this environment.') from missing_error
 	return handle_call
 try:
 	from envs.dmcontrol import make_env as make_dm_control_env
