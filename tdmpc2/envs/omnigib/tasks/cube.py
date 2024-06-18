@@ -43,4 +43,5 @@ class CubeEnv(OmnigibEnv):
 
 
 def make_env(cfg_dict):
-    return CubeEnv(cfg_dict)
+    print("Constructing environment with parameters:", cfg_dict)
+    return CubeEnv()
