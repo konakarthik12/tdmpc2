@@ -17,7 +17,7 @@ mkdir $repo_dir
 
 git -C $repo_dir init
 git -C $repo_dir remote add origin $REPO_URL
-git -C $repo_dir fetch --depth 1 origin $COMMIT_SHA
+git -C $repo_dir fetch --depth 1 origin $COMMIT_SHA 2> /tmp/checkout_error || begin; cat /tmp/checkout_error 1>&2; exit 1; end
 git -C $repo_dir checkout FETCH_HEAD 2> /tmp/checkout_error || begin; cat /tmp/checkout_error 1>&2; exit 1; end
 
 
@@ -39,8 +39,11 @@ echo "with commit: $argv[2]"
 echo "with args: $argv[3..-1]"
 echo "Running on $(hostname)"
 echo "In directory: $(pwd)"
-echo "With environment:"
-env
+
+echo "EXP_PATH: $EXP_PATH"
+echo "OMNIGIBSON_ASSET_PATH: $OMNIGIBSON_ASSET_PATH"
+ls $OMNIGIBSON_ASSET_PATH
+
 conda run -n tdmpc2 --live-stream python "$SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py" $argv[3..-1]
 
 echo "Task complete"
