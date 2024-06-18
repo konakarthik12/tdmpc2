@@ -18,7 +18,7 @@ mkdir $repo_dir
 git -C $repo_dir init
 git -C $repo_dir remote add origin $REPO_URL
 git -C $repo_dir fetch --depth 1 origin $COMMIT_SHA
-git -C $repo_dir checkout FETCH_HEAD &> /tmp/checkout.lot || begin; cat /tmp/checkout.log >&2; exit 1; end
+git -C $repo_dir checkout FETCH_HEAD 2> /tmp/checkout_error || begin; cat /tmp/checkout_error 1>&2; exit 1; end
 
 
 . $repo_dir/slurm_scripts/setup_cluster.fish $SLURM_WORK_DIR
