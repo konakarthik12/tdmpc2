@@ -4,6 +4,7 @@ from copy import deepcopy
 import warnings
 
 import gym
+import traceback
 
 from envs.wrappers.multitask import MultitaskWrapper
 from envs.wrappers.pixels import PixelWrapper
@@ -75,9 +76,9 @@ def make_env(cfg):
 		for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env, make_myosuite_env,make_omnigib_env]:
 			try:
 				env = fn(cfg)
-			except ValueError as e:
-				errors.append(os.path.abspath(inspect.getsourcefile(fn)) + ': ' + str(e))
-				pass
+			except ValueError:
+				errors.append(os.path.abspath(inspect.getsourcefile(fn)) + '\n' + traceback.format_exc())
+
 		if env is None:
 			raise ValueError(f'Failed to make environment "{cfg.task}": please verify that dependencies are installed and that the task exists.\nErrors:\n' + '\n\n\n'.join(errors))
 		env = TensorWrapper(env)
