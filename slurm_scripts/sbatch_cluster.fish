@@ -40,10 +40,6 @@ echo "with args: $argv[3..-1]"
 echo "Running on $(hostname)"
 echo "In directory: $(pwd)"
 
-echo "EXP_PATH: $EXP_PATH"
-echo "OMNIGIBSON_ASSET_PATH: $OMNIGIBSON_ASSET_PATH"
-ls $OMNIGIBSON_ASSET_PATH
-
 conda run -n tdmpc2 --live-stream python "$SLURM_WORK_DIR/tdmpc2/tdmpc2/train.py" $argv[3..-1]
 
 echo "Task complete"
