@@ -73,7 +73,7 @@ def make_env(cfg):
 	else:
 		env = None
 		errors = []
-		for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env, make_myosuite_env,make_omnigib_env]:
+		for fn in [make_dm_control_env, make_maniskill_env, make_metaworld_env, make_myosuite_env, make_omnigib_env]:
 			try:
 				env = fn(cfg)
 			except ValueError:
