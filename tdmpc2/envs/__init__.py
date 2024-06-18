@@ -86,7 +86,7 @@ def make_env(cfg):
 		env = PixelWrapper(cfg, env)
 	try: # Dict
 		cfg.obs_shape = {k: v.shape for k, v in env.observation_space.spaces.items()}
-	except: # Box
+	except AttributeError:
 		cfg.obs_shape = {cfg.get('obs', 'state'): env.observation_space.shape}
 	cfg.action_dim = env.action_space.shape[0]
 	cfg.episode_length = env.max_episode_steps

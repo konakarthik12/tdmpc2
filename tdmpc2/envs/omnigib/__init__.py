@@ -1,8 +1,6 @@
 from gym.wrappers import TimeLimit, StepAPICompatibility
 from .env import OmnigibEnv
 
-from .robots import ant
-
 from .tasks import tasks
 
 def make_env(cfg):
