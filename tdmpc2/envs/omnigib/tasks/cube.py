@@ -12,8 +12,8 @@ gm.ENABLE_FLATCACHE = True
 class CubeEnv(OmnigibEnv):
     def __init__(self):
 
-        base_cfg = OmegaConf.load(os.path.join(__file__, "configs/base.yaml"))
-        cube_cfg = OmegaConf.load(os.path.join(__file__, "configs/cube.yaml"))
+        base_cfg = OmegaConf.load(os.path.join(os.path.dirname(__file__), "configs/base.yaml"))
+        cube_cfg = OmegaConf.load(os.path.join(os.path.dirname(__file__), "configs/cube.yaml"))
         cfg = OmegaConf.merge(base_cfg, cube_cfg)
 
         super().__init__(cfg)
