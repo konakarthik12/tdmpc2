@@ -10,8 +10,8 @@ env:
     - sensor_type: VisionSensor
       modalities: [ rgb ]
       sensor_kwargs:
-        image_height: 384
-        image_width: 384
+        image_height: 64
+        image_width: 64
       local_position: [ 0.82634, -0.92151, 1.9347 ]
       local_orientation: [0.30231,  -0.0229, -0.07199, 0.95021,  ]
 
