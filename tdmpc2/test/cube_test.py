@@ -1,4 +1,5 @@
-# Define paths
+import sys
+print(sys.path)
 import os
 
 import matplotlib.pyplot as plt
