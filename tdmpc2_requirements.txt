@@ -30,7 +30,7 @@ torchrl-nightly==2024.3.26
 transforms3d==0.4.1
 trimesh==4.0.9
 tqdm==4.66.1
-wandb==0.17.1
+wandb~=0.17
 # wheel==0.38.0
  ####################
  # Gym:
