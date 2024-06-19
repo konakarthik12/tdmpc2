@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 from envs.omnigib.tasks.cube import CubeEnv
-from .plot_env import env_to_frames, images_to_video
+from plot_env import env_to_frames, images_to_video
 
 env = CubeEnv()
 steps = 3000
