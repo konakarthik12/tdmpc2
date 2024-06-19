@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 from envs.omnigib.tasks.cube import CubeEnv
 from plot_env import fig_to_image, env_to_frames, images_to_video
-from tdmpc2.envs.omnigib.tasks.cube import CubeEnv
+from envs.omnigib.tasks.cube import CubeEnv
 
 env = CubeEnv()
 steps = 3000
