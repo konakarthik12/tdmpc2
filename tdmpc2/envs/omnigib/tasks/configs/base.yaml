@@ -22,7 +22,6 @@ render:
 scene:
   type: Scene
 
-
 robots:
   - type: Fetch
     obs_modalities: [ rgb ]

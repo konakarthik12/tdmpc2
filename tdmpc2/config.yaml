@@ -8,10 +8,10 @@ obs: ???
 # evaluation
 checkpoint: ???
 eval_episodes: 10
-eval_freq: 50000
+eval_freq: 500
 
 # training
-steps: 10_000_000
+steps: 100_000
 batch_size: 256
 reward_coef: 0.1
 value_coef: 0.1
