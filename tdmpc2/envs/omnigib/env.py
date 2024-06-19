@@ -5,7 +5,7 @@ from scipy.spatial.transform import Rotation
 
 import omnigibson as og
 from omnigibson.sensors import VisionSensor
-
+import cv2
 
 def fix_angle(angle):
     return np.roll(angle, -1)
@@ -76,7 +76,8 @@ class OmnigibEnv(gym.Env):
         rgb_image = camera_data["rgb"]
         (actual_height, actual_width, _) = rgb_image.shape
         if width is not None or height is not None:
-            assert width == actual_width and height == actual_height, f"Requested resolution ({width}x{height}) does not match actual resolution ({actual_width}x{actual_height})"
+            # assert width == actual_width and height == actual_height, f"Requested resolution ({width}x{height}) does not match actual resolution ({actual_width}x{actual_height})"
+            rgb_image = cv2.resize(rgb_image, (width, height))
         # assert rgb_image.shape == (64, 64, 4)
         # remove the alpha channel, changes shape from (64, 64, 4) to (64, 64, 3)
         rgb_image = rgb_image[:, :, :3]
