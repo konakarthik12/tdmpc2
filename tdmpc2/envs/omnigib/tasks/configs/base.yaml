@@ -15,7 +15,6 @@ env:
       local_position: [ 0.82634, -0.92151, 1.9347 ]
       local_orientation: [0.30231,  -0.0229, -0.07199, 0.95021,  ]
 
-
 render:
   viewer_width: 1280
   viewer_height: 720
