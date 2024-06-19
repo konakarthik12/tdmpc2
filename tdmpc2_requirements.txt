@@ -50,6 +50,10 @@ wandb~=0.17
  # myosuite
  ####################
 
+
+git+https://github.com/StanfordVL/OmniGibson@v1.0.0#egg=omnigibson
+
+
 # torch requirements
 # --extra-index-url https://download.pytorch.org/whl/cu118
 # torch==2.3.0
