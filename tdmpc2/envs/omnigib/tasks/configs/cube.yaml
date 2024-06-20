@@ -1,3 +1,6 @@
+defaults:
+   - base
+   - _self_
 objects:
   - '${extra.table}'
   - name: cube

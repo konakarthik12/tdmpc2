@@ -1,7 +1,12 @@
 import os
 from omegaconf import OmegaConf
-
+from hydra import compose, initialize
 from omnigibson import gm
+import omnigibson as og
+import yaml
+
+from omnigibson.macros import gm
+
 from omnigibson.utils.transform_utils import l2_distance
 from ..env import OmnigibEnv
 
@@ -11,15 +16,21 @@ gm.ENABLE_FLATCACHE = True
 
 class CubeEnv(OmnigibEnv):
     def __init__(self):
+        # base_cfg = OmegaConf.load(os.path.join(os.path.dirname(__file__), "configs/base.yaml"))
+        # cube_cfg = OmegaConf.load(os.path.join(os.path.dirname(__file__), "configs/cube.yaml"))
+        # cfg = OmegaConf.merge(base_cfg, cube_cfg)
+        # cfg = OmegaConf.to_container(cfg, resolve=True)
 
-        base_cfg = OmegaConf.load(os.path.join(os.path.dirname(__file__), "configs/base.yaml"))
-        cube_cfg = OmegaConf.load(os.path.join(os.path.dirname(__file__), "configs/cube.yaml"))
-        cfg = OmegaConf.merge(base_cfg, cube_cfg)
-
+        with initialize(version_base=None, config_path="configs/"):
+            cfg = compose(config_name="cube")
+        cfg = OmegaConf.to_container(cfg, resolve=True)
+        print("CubeEnv config: ", cfg)
+        self.cube = None
         super().__init__(cfg)
-        self.cube = self.og_env.scene.object_registry("name", "cube")
 
-    def internal_obs(self, raw_frame):
+    def internal_obs(self):
+        if not self.cube:
+            self.cube = self.og_env.scene.object_registry("name", "cube")
         state = self.render()
         robot_pos = self.robot.get_position()
         cube_pos = self.cube.get_position()

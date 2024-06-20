@@ -13,7 +13,7 @@ env:
         image_height: 256
         image_width: 256
       local_position: [ 0.82634, -0.92151, 1.9347 ]
-      local_orientation: [0.30231,  -0.0229, -0.07199, 0.95021,  ]
+      local_orientation: [ 0.30231,  -0.0229, -0.07199, 0.95021, ]
 
 render:
   viewer_width: 1280
@@ -25,13 +25,22 @@ scene:
 robots:
   - type: Fetch
     obs_modalities: [ rgb ]
-    scale: 1.0
-    self_collision: false
+
     action_normalize: true
     action_type: continuous
-    grasping_mode: physical
-    rigid_trunk: true
+    grasping_mode: assisted
+    fixed_base: true
+    position: [ 0.48,0,0 ]
 
+    controller_config:
+      base:
+        name: NullJointController
+      arm_0:
+        name: OperationalSpaceController
+      gripper_0:
+        name: MultiFingerGripperController
+      camera:
+        name: NullJointController
 
 extra:
   table:

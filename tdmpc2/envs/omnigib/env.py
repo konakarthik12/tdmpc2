@@ -36,7 +36,7 @@ class OmnigibEnv(gym.Env):
         # TODO: hard code name of vision sensor
         external_camera: VisionSensor = list(self.og_env.external_sensors.values())[0]
         self.vision_sensor = external_camera
-
+        self.reset()
         # self.vision_sensor = self.og_env.external_sensors["external_camera"]
 
         # assert self.vision_sensor.image_height == 64 and self.vision_sensor.image_width == 64
@@ -65,8 +65,6 @@ class OmnigibEnv(gym.Env):
         self.action_space = self.og_env.action_space["robot0"]
         print("Action space: ", self.action_space)
 
-
-
     def render(self, mode="rgb_array", width=None, height=None):
         assert mode == "rgb_array", "Only rgb_array mode is supported"
         # assert width == 64 and height == 64, "Only 64x64 resolution is supported"
@@ -87,10 +85,11 @@ class OmnigibEnv(gym.Env):
     def reset(self, seed=None, **kwargs):
         super().reset(seed=seed, **kwargs)
         # reset the environment
-        print("Resetting the environment")
-        raw_frame = self.og_env.reset()
+        # print("Resetting the environment")
+        self.og_env.reset()
+        self.robot.reset()
 
-        state, reward, done, info = self.internal_obs(raw_frame)
+        state, reward, done, info = self.internal_obs()
         # assert state.shape == (64, 64, 3), "State shape is not (64, 64, 3), it is: " + str(state.shape)
         # assert state in self.observation_space
         # return state, info
@@ -98,7 +97,7 @@ class OmnigibEnv(gym.Env):
 
     def step(self, action):
         raw_frame = self.og_env.step(action)
-        state, reward, done, info = self.internal_obs(raw_frame)
+        state, reward, done, info = self.internal_obs()
         terminated = done
         truncated = False
         return state, reward, terminated, truncated, info
@@ -108,7 +107,8 @@ class OmnigibEnv(gym.Env):
         print("Closing the environment")
         self.og_env.close()
 
-    def internal_obs(self, raw_frame):
+    def internal_obs(self):
+        raw_frame = self.og_env.get_obs()
         rgb_image = self.render()
         state = rgb_image
         reward = raw_frame[1]
