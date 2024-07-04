@@ -7,7 +7,7 @@ from envs.omnigib.tasks.cube import CubeEnv
 from plot_env import env_to_frames, images_to_video
 
 env = CubeEnv()
-steps = 30
+steps = 3000
 
 path_project = os.path.abspath(os.path.join(__file__, ".."))
 path_of_video_with_name = os.path.join(path_project, "videotest.mp4")
