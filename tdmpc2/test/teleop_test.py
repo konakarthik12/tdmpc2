@@ -6,6 +6,7 @@ Options for random actions, as well as selection of robot action space
 import numpy as np
 
 import omnigibson as og
+from envs.omnigib.tasks.cube import CubeEnv
 from omnigibson.macros import gm
 from omnigibson.object_states import IsGrasping, Touching
 from omnigibson.robots import Fetch
@@ -25,15 +26,15 @@ def main():
     """
     og.log.info(f"Demo {__file__}\n    " + "*" * 80 + "\n    Description:\n" + main.__doc__ + "*" * 80)
 
-    with initialize(version_base=None, config_path="../envs/omnigib/tasks/configs"):
-        cfg = compose(config_name="cube")
-    cfg = OmegaConf.to_container(cfg, resolve=True)
+    # with initialize(version_base=None, config_path="../envs/omnigib/tasks/configs"):
+    #     cfg = compose(config_name="cube")
+    # cfg = OmegaConf.to_container(cfg, resolve=True)
     # cfg["robots"] = [robot0_cfg]
     # Create the environment
-    env = og.Environment(configs=cfg)
-    robot: Fetch = env.robots[0]
+    env = CubeEnv()
+    robot: Fetch = env.robot
 
-    cube = env.scene.object_registry("name", "cube")
+    cube = env.cube
     # Update the simulator's viewer camera's pose so it points towards the robot
     og.sim.viewer_camera.set_position_orientation(
         position=np.array([1.46949, -3.97358, 2.21529]),
@@ -80,7 +81,11 @@ def main():
         action = action[4:]
         # print(robot.states.keys())
         # print(robot.states[Touching].get_value(cube)), print(robot.states[IsGrasping].get_value(cube))
-        env.step(action=action)
+        state, reward, terminated, truncated, info = env.step(action=action)
+        if terminated or truncated:
+            env.reset()
+            step = 0
+        print(reward, terminated, truncated)
         step += 1
 
     # Always shut down the environment cleanly at the end

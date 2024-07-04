@@ -4,6 +4,7 @@ from gym.spaces import Box
 from scipy.spatial.transform import Rotation
 
 import omnigibson as og
+from omnigibson.robots import Fetch
 from omnigibson.sensors import VisionSensor
 import cv2
 
@@ -31,7 +32,7 @@ class OmnigibEnv(gym.Env):
         self.cfg = omni_cfg
         print("Creating the environment with config: ", self.cfg)
         self.og_env = og.Environment(configs=self.cfg)
-        self.robot = self.og_env.robots[0]
+        self.robot: Fetch = self.og_env.robots[0]
         self.vision_sensor = None
 
         for sensor in self.robot.sensors.values():
@@ -44,7 +45,7 @@ class OmnigibEnv(gym.Env):
         # TODO: hard code name of vision sensor
         external_camera: VisionSensor = list(self.og_env.external_sensors.values())[0]
         self.vision_sensor = external_camera
-        self.reset()
+        # self.reset()
         # self.vision_sensor = self.og_env.external_sensors["external_camera"]
 
         # assert self.vision_sensor.image_height == 64 and self.vision_sensor.image_width == 64
@@ -104,7 +105,7 @@ class OmnigibEnv(gym.Env):
         return state
 
     def step(self, action):
-        raw_frame = self.og_env.step(fix_action(action))
+        self.og_env.step(fix_action(action))
         state, reward, done, info = self.internal_obs()
         terminated = done
         truncated = False

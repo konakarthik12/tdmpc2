@@ -2,17 +2,15 @@ import os
 from omegaconf import OmegaConf
 from hydra import compose, initialize
 from omnigibson import gm
-import omnigibson as og
-import yaml
-
-from omnigibson.macros import gm
-
 from omnigibson.utils.transform_utils import l2_distance
 from ..env import OmnigibEnv
 
 gm.USE_GPU_DYNAMICS = False
 gm.ENABLE_FLATCACHE = True
 
+with initialize(version_base=None, config_path="configs/"):
+    cfg = compose(config_name="cube")
+cfg = OmegaConf.to_container(cfg, resolve=True)
 
 class CubeEnv(OmnigibEnv):
     def __init__(self):
@@ -21,22 +19,18 @@ class CubeEnv(OmnigibEnv):
         # cfg = OmegaConf.merge(base_cfg, cube_cfg)
         # cfg = OmegaConf.to_container(cfg, resolve=True)
 
-        with initialize(version_base=None, config_path="configs/"):
-            cfg = compose(config_name="cube")
-        cfg = OmegaConf.to_container(cfg, resolve=True)
+
         print("CubeEnv config: ", cfg)
         self.cube = None
         super().__init__(cfg)
+        self.cube = self.og_env.scene.object_registry("name", "cube")
 
     def internal_obs(self):
-        if not self.cube:
-            self.cube = self.og_env.scene.object_registry("name", "cube")
-        state = self.render()
-        robot_pos = self.robot.get_position()
+        robot_pos = self.robot.get_eef_position()
         cube_pos = self.cube.get_position()
         dist = l2_distance(robot_pos, cube_pos)
         reward = -dist
-        done = False
+        done = dist < 0.05
         info = {"testing": "hi"}
         state = self.render()
         # assert np.isclose(self.vision_sensor.get_position(), [0, 0, 1]).all()
