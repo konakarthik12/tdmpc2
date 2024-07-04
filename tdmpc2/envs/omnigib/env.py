@@ -16,6 +16,14 @@ def to_omni_quat(euler_angle):
 
     return np.roll(Rotation.from_euler("xyz", euler_angle, degrees=True).as_quat(), 1)
 
+# the first 4 elements of action space control the base,
+# which is fixed for our experiments
+def fix_action_space(action_space):
+    assert action_space == Box(-1, 1, (11,), np.float64), "Original action space is not as expected: " + str(action_space)
+    return Box(-1, 1, (7,), np.float64)
+
+def fix_action(action):
+    return np.concatenate([np.zeros(4), action])
 
 class OmnigibEnv(gym.Env):
 
@@ -62,7 +70,7 @@ class OmnigibEnv(gym.Env):
         self.observation_space = Box(0, 255, rgb_image.shape, np.uint8)
 
         print("Observation space: ", self.observation_space)
-        self.action_space = self.og_env.action_space["robot0"]
+        self.action_space = fix_action_space(self.og_env.action_space["robot0"])
         print("Action space: ", self.action_space)
 
     def render(self, mode="rgb_array", width=None, height=None):
@@ -96,7 +104,7 @@ class OmnigibEnv(gym.Env):
         return state
 
     def step(self, action):
-        raw_frame = self.og_env.step(action)
+        raw_frame = self.og_env.step(fix_action(action))
         state, reward, done, info = self.internal_obs()
         terminated = done
         truncated = False

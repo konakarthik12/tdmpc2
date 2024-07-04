@@ -12,8 +12,8 @@ def env_to_frames(env, steps):
     # Simulate the environment
     for _ in tqdm(range(steps)):
         image = env.render(width=64, height=64)
-        # action = env.action_space.sample()
-        action = np.zeros(11)
+        action = env.action_space.sample()
+        # action = np.zeros(7)
         state, reward, terminated, truncated, info = env.step(action)
         print("Action: ", action)
 
