@@ -1,5 +1,8 @@
 #!/usr/bin/env fish
-
+set setup_dir $SCRATCH_DIR
+if test (count $argv) -e 1
+    set setup_dir $argv[1]
+end
 echo "Setting up cluster in $(realpath $argv[1])"
 . /fs/nexus-projects/KGB-MBRL/scratch_hold/setup_all.fish $argv[1]
 
